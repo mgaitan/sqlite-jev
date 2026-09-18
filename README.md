@@ -198,6 +198,34 @@ connection.enable_load_extension(False)
 version = connection.execute("select jev_version()").fetchone()[0]
 ```
 
+## Comparison
+
+The projects below all bring TypeSafe Jev into SQL, but target different databases and
+workflows. This is a feature comparison based on their public documentation and repositories
+on 2026-09-18; **not documented** means the capability was not described there, not that it
+cannot be built by an application around the project.
+
+| Capability | [`sqlite-jev`](https://github.com/mgaitan/sqlite-jev) | [`mattn/sqlite3-jev`](https://github.com/mattn/sqlite3-jev) | [`EugeneBoondock/jevsql`](https://github.com/EugeneBoondock/jevsql) | [`realZachi/pg-jev`](https://github.com/realZachi/pg-jev) |
+| --- | --- | --- | --- | --- |
+| Primary target | SQLite loadable extension + Python package | SQLite loadable extension | Node.js library and CLI over SQLite | PostgreSQL extension |
+| Batched work over a table | **Yes** — `jev_rows` batches up to 40 source rows in one API state | **No** — each SQL row invokes a scalar function; `jev(state, questions_json)` can batch questions for one state | **Yes** — collects distinct judgments before dispatching requests | **Yes** — executor read-ahead batches rows (20 by default) |
+| Table-valued / virtual-table interface | **Yes** — `jev_rows(...)` yields rows that join through `source_rowid` | No — registers scalar functions only | No — runs/re-writes SQL from the Node library | No — ordinary PostgreSQL functions plus executor read-ahead |
+| SQL primitives | Noul, Choice, Score; full answer, probability/confidence helpers | Noul, Choice, Score; raw and multi-question JSON calls | Noul, Choice, Score, match, candidate extraction/pick, review bands | Noul, Choice, Score; full answer and probability/confidence helpers |
+| Cache and spend control | Connection-local cache; `max_rows` guard | Connection-local configuration; retry/backoff | In-memory or file cache; judgment and estimated-cost caps | Session cache; row and character guards |
+| Persisted decisions, refresh history, and audit receipts | No | No | **Yes** | No |
+| Python distribution | **Yes** — `sqlite-jev` wheel and `sqlite_jev.load()` | Not documented (can be loaded from bindings that support SQLite extensions) | No | No — PostgreSQL / PL-Python dependency |
+| Local-model endpoint documented | TypeSafe endpoint configurable | **Yes** — documented `tensai`-compatible local endpoint | TypeSafe API client | TypeSafe endpoint configurable |
+| Automated CI | **Yes** — mock tests plus wheel build/test on Linux x86_64/arm64 and macOS Intel/Apple Silicon; scheduled live smoke test | **No** — has local `make test` / mock-server tests, but no GitHub Actions workflow in the current repository | **Yes** — mock-server tests on Ubuntu and Windows with Node 22/24 | **Yes** — GitHub Actions and deterministic regression tests |
+| Prebuilt native artifacts | **Yes** — GitHub Release archives and platform Python wheels for Linux/macOS x86_64/arm64 | **No** — build the extension from source with `make` | Not applicable — Node.js library/CLI, not a native SQLite extension | No prebuilt library documented; PGXN installs from its source distribution |
+| Platform claim | Tested Linux and macOS; release archives and Python wheels for x86_64/arm64 | Linux, macOS, and Windows (MinGW-w64) | Node 22.16+; CI covers Ubuntu and Windows | PostgreSQL 14–17; requires `plpython3u` and a superuser |
+
+`sqlite-jev` is the SQLite option when the desired query shape is a relational batch: select
+source columns, evaluate them together, and join typed results back in SQL. `JevSQL` is stronger
+when decision tables, refreshes, and audits are the primary workflow. `sqlite3-jev` currently
+has the broader documented native-platform and local-model story; `pg-jev` offers the most
+mature PostgreSQL-specific batching and execution integration. All four send evaluated row data
+to a configured model endpoint, so normal data-sharing and cost controls still apply.
+
 ## Demo and tests
 
 The deterministic suite uses a local mock server and never calls TypeSafe:
