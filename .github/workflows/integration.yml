@@ -1,0 +1,24 @@
+name: TypeSafe integration
+
+on:
+  workflow_dispatch:
+  schedule:
+    # January, March, May, July, September, and November.
+    - cron: "17 9 1 */2 *"
+
+permissions:
+  contents: read
+
+jobs:
+  live-smoke:
+    name: Live API smoke test
+    runs-on: ubuntu-24.04
+    env:
+      TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require integration secret
+        run: test -n "$TYPESAFE_API_KEY"
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y sqlite3 libsqlite3-dev curl
+      - run: make integration-test

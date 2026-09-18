@@ -1,0 +1,5 @@
+.env
+build/
+pg-jev/
+*.db
+*.so

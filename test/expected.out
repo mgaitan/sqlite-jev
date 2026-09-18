@@ -1,0 +1,17 @@
+set
+http://127.0.0.1:8765/v1/systemone
+0.1.0
+0.97
+0
+technical
+1.0
+0.5
+0.93
+1|0.97
+1|billing|0.88
+2|technical|0.88
+3|sales|0.88
+4|billing|0.88
+6|12
+4
+6|6
