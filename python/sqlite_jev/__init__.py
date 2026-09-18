@@ -10,6 +10,11 @@ __version__ = version("sqlite-jev")
 
 def load(connection):
     """Load sqlite-jev into a stdlib sqlite3 connection and return it."""
+    if not hasattr(connection, "enable_load_extension"):
+        raise RuntimeError(
+            "this Python sqlite3 build does not support loadable extensions"
+        )
+
     suffix = ".dylib" if sys.platform == "darwin" else ".so"
     extension = files(__package__).joinpath(f"jev{suffix}")
 

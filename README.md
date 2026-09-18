@@ -168,8 +168,24 @@ The API key is never returned by `jev_config`; it reports only `set` or `unset`.
 
 ## Python
 
-Python's standard `sqlite3` module can load the same native extension; there is no separate
-implementation:
+Add the platform package to a project and load it with the Python wrapper:
+
+```bash
+uv add sqlite-jev
+```
+
+```python
+import sqlite3
+import sqlite_jev
+
+connection = sqlite_jev.load(sqlite3.connect(":memory:"))
+```
+
+The package contains the same native extension as the standalone release, has no runtime
+Python dependencies, and supports maintained Python versions starting with Python 3.10. The
+interpreter's `sqlite3` module must have loadable-extension support enabled.
+
+To load a standalone build manually instead:
 
 ```python
 import sqlite3
@@ -181,22 +197,6 @@ connection.enable_load_extension(False)
 
 version = connection.execute("select jev_version()").fetchone()[0]
 ```
-
-Install the platform wheel from PyPI and load it with a small Python wrapper:
-
-```bash
-pip install sqlite-jev
-```
-
-```python
-import sqlite3
-import sqlite_jev
-
-connection = sqlite_jev.load(sqlite3.connect(":memory:"))
-```
-
-The package contains the same native extension as the standalone release. It has no runtime
-Python dependencies and works with Python 3.9 or newer.
 
 ## Demo and tests
 
