@@ -30,7 +30,7 @@ Requirements:
 
 - SQLite 3.45 or newer, built with JSON support and loadable extensions
 - A C11 compiler and `make`
-- The `libcurl` runtime (`libcurl.so.4` on Linux)
+- The `libcurl` runtime (`libcurl.so.4` on Linux or `libcurl.4.dylib` on macOS)
 - A TypeSafe API key
 
 The current development machine already has all of these; no extra system package is needed.
@@ -182,9 +182,21 @@ connection.enable_load_extension(False)
 version = connection.execute("select jev_version()").fetchone()[0]
 ```
 
-A future `sqlite-jev` PyPI package can bundle the matching native binary and reduce this to
-`sqlite_jev.load(connection)`. The release archives are the first step toward those
-platform-specific wheels.
+Install the platform wheel from PyPI and load it with a small Python wrapper:
+
+```bash
+pip install sqlite-jev
+```
+
+```python
+import sqlite3
+import sqlite_jev
+
+connection = sqlite_jev.load(sqlite3.connect(":memory:"))
+```
+
+The package contains the same native extension as the standalone release. It has no runtime
+Python dependencies and works with Python 3.9 or newer.
 
 ## Demo and tests
 
@@ -214,9 +226,10 @@ Tags named `vX.Y.Z` build and publish four archives through GitHub Actions:
 - Linux x86_64 and arm64
 - macOS Intel and Apple Silicon
 
-Each archive contains the native extension, this README, and its `VERSION` file. The release
-also includes `SHA256SUMS`. CI runs the mock-backed test suite on Linux and macOS without API
-credentials.
+Each archive contains the native extension, this README, and its `pyproject.toml`. The release
+also includes a `py3-none-<platform>` Python wheel and `SHA256SUMS`. CI installs each wheel
+with `cibuildwheel` and verifies that `sqlite_jev.load()` enables the SQL API. The same tag
+publishes the wheels and source distribution to PyPI through trusted publishing.
 
 ## Important limits
 
@@ -229,4 +242,4 @@ credentials.
 - Text stored in a row can steer model behavior. Test adversarial content and use conservative
   probability or confidence thresholds before automating consequential actions.
 - `libcurl` is loaded dynamically so building does not require the curl development headers.
-  Linux is the currently tested platform.
+  Linux and macOS are the currently tested platforms.

@@ -1,5 +1,10 @@
 .env
 build/
+dist/
+wheelhouse/
 pg-jev/
+*.egg-info/
+.venv/
+__pycache__/
 *.db
 *.so

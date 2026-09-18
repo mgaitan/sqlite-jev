@@ -4,7 +4,7 @@ CFLAGS += -fPIC -std=c11 -Wall -Wextra -Wpedantic
 CPPFLAGS ?=
 LDFLAGS ?=
 
-VERSION := $(shell tr -d '[:space:]' < VERSION)
+VERSION := $(shell sed -n 's/^version = "\([^"]*\)"/\1/p' pyproject.toml | head -1)
 CPPFLAGS += -DJEV_VERSION='"$(VERSION)"'
 BUILD_DIR := build
 UNAME_S := $(shell uname -s)
@@ -26,7 +26,7 @@ EXTENSION := $(BUILD_DIR)/jev.$(EXT_SUFFIX)
 PACKAGE_NAME ?= sqlite-jev-$(VERSION)-$(PLATFORM)-$(UNAME_M)
 PACKAGE_DIR := $(BUILD_DIR)/$(PACKAGE_NAME)
 
-.PHONY: all clean test integration-test live-test package
+.PHONY: all clean test integration-test live-test package wheel wheel-test
 
 all: $(EXTENSION)
 
@@ -49,9 +49,16 @@ package: $(EXTENSION)
 	rm -rf $(PACKAGE_DIR)
 	mkdir -p $(PACKAGE_DIR)
 	cp $(EXTENSION) $(PACKAGE_DIR)/
-	cp README.md VERSION $(PACKAGE_DIR)/
+	cp README.md pyproject.toml $(PACKAGE_DIR)/
 	tar -czf $(BUILD_DIR)/$(PACKAGE_NAME).tar.gz -C $(BUILD_DIR) $(PACKAGE_NAME)
 	@echo "Created $(BUILD_DIR)/$(PACKAGE_NAME).tar.gz"
+
+wheel:
+	rm -rf dist
+	uv build --wheel
+
+wheel-test: wheel
+	./scripts/test_wheel.sh "$$(find dist -maxdepth 1 -name '*.whl' -print -quit)"
 
 clean:
 	rm -rf $(BUILD_DIR)

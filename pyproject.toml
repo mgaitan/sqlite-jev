@@ -1,0 +1,33 @@
+[build-system]
+requires = ["scikit-build-core>=1,<2"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "sqlite-jev"
+version = "0.1.0"
+description = "Batched natural-language judgments for SQLite, powered by TypeSafe Jev"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: SQL",
+  "Operating System :: MacOS",
+  "Operating System :: POSIX :: Linux",
+  "Topic :: Database",
+]
+
+[project.urls]
+Source = "https://github.com/mgaitan/sqlite-jev"
+Issues = "https://github.com/mgaitan/sqlite-jev/issues"
+
+[tool.scikit-build]
+wheel.packages = ["python/sqlite_jev"]
+wheel.py-api = "py3"
+
+[tool.cibuildwheel]
+build = "cp39-*"
+skip = "*-musllinux_*"
+test-command = "python {project}/test/python_package.py"
+
+[tool.cibuildwheel.linux]
+before-all = "yum install -y sqlite-devel libcurl"
