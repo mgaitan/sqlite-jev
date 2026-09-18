@@ -13,6 +13,10 @@
 
 SQLITE_EXTENSION_INIT1
 
+#ifndef SQLITE_RESULT_SUBTYPE
+#define SQLITE_RESULT_SUBTYPE 0x001000000
+#endif
+
 #ifndef JEV_VERSION
 #define JEV_VERSION "0.1.0"
 #endif
@@ -1191,9 +1195,18 @@ static int vtab_rowid(sqlite3_vtab_cursor *cursor, sqlite3_int64 *rowid) {
 }
 
 static sqlite3_module JevModule = {
-  3, NULL, vtab_connect, vtab_best_index, vtab_disconnect, vtab_disconnect,
-  vtab_open, vtab_close, vtab_filter, vtab_next, vtab_eof, vtab_column, vtab_rowid,
-  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+  .iVersion = 3,
+  .xConnect = vtab_connect,
+  .xBestIndex = vtab_best_index,
+  .xDisconnect = vtab_disconnect,
+  .xDestroy = vtab_disconnect,
+  .xOpen = vtab_open,
+  .xClose = vtab_close,
+  .xFilter = vtab_filter,
+  .xNext = vtab_next,
+  .xEof = vtab_eof,
+  .xColumn = vtab_column,
+  .xRowid = vtab_rowid,
 };
 
 static int register_function(sqlite3 *db, const char *name, int nargs, void *state,
